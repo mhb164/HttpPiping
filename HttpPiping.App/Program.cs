@@ -1,4 +1,4 @@
-namespace HttpServerApp
+namespace HttpPiping.App
 {
     internal static class Program
     {
@@ -11,7 +11,9 @@ namespace HttpServerApp
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new MainForm());
+
+            var setting = HttpPipingSettingIO.LoadJson($"HttpPipingSetting.json");
+            Application.Run(new MainForm(setting));
         }
     }
 }
