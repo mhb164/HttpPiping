@@ -48,7 +48,7 @@ namespace HttpPiping.Core
             int Ret;
             try
             {
-                Ret = _source.EndReceive(ar);
+                Ret = _source?.EndReceive(ar) ?? 0;
             }
             catch
             {
@@ -132,7 +132,7 @@ namespace HttpPiping.Core
                 }
             }
 
-            _logger?.LogInformation($"{(isHttps? "Https>" : "Http>")} {Host}:{Port} ({HttpVersion})");
+            _logger?.LogInformation($"{(isHttps ? "Https>" : "Http>")} {Host}:{Port} ({HttpVersion})");
 
             try
             {
@@ -200,7 +200,7 @@ namespace HttpPiping.Core
         {
             try
             {
-                int Ret = _source.EndReceive(ar);
+                int Ret = _source?.EndReceive(ar) ?? 0;
                 if (Ret <= 0)
                 {
                     Dispose();
@@ -208,14 +208,14 @@ namespace HttpPiping.Core
                 }
 
                 _logger?.LogTrace($"SourceDataReceive [{_source.RemoteEndPoint}-{Key}]: length: {Ret}");
-               
+
 
                 var data = new byte[Ret];
-                Array.Copy(_buffer, data, Ret);                
+                Array.Copy(_buffer, data, Ret);
 
                 _destinationManager.SendData(Key, data);
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 Dispose();
             }
@@ -236,7 +236,7 @@ namespace HttpPiping.Core
         {
             try
             {
-                int Ret = _source.EndSend(ar);
+                int Ret = _source?.EndSend(ar) ?? 0;
                 if (Ret > 0)
                 {
                     _destinationManager.StartReceiveData(Key);
@@ -251,7 +251,8 @@ namespace HttpPiping.Core
         {
             try
             {
-                if (_source.EndSend(ar) == -1)
+                int Ret = _source?.EndSend(ar) ?? 0;
+                if (Ret <= 0)
                 {
                     Dispose();
                     return;
@@ -268,7 +269,7 @@ namespace HttpPiping.Core
         {
             try
             {
-                _source.EndSend(ar);
+                _source?.EndSend(ar);
             }
             catch { }
             Dispose();
@@ -352,7 +353,7 @@ namespace HttpPiping.Core
 
         private void SendBadRequest()
         {
-            var  badRequest= """
+            var badRequest = """
                    HTTP/1.1 400 Bad Request
                    Connection: close
                    Content-Type: text/html

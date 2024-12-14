@@ -43,6 +43,7 @@ namespace HttpPiping.App
 
             _server = new PipeServer(this as ILogger, destinationManager, IPAddress.Any, listenerPort).Start();
 
+            Text = $"Listening... Http Piping v{Aid.AppVersion}";
             StartButton.Enabled = PortInput.Enabled = false;
             StopButton.Enabled = true;
         }
@@ -52,6 +53,7 @@ namespace HttpPiping.App
             _server?.Stop();
             _server = null;
 
+            Text = $"Http Piping v{Aid.AppVersion}";
             StartButton.Enabled = PortInput.Enabled = true;
             StopButton.Enabled = false;
         }

@@ -10,6 +10,8 @@ namespace HttpPiping.Core
         private readonly ILogger? _logger;
         private readonly IFlowManager _flowManager;
         private readonly object _listenerLock = new object();
+        private readonly object _pipeSocketsLock = new object();
+        private readonly Dictionary<Guid, PipeSocket> _pipeSockets;
 
         public PipeServer(ILogger logger, IFlowManager flowManager, IPAddress address, ushort port)
         {
@@ -24,7 +26,6 @@ namespace HttpPiping.Core
         public ushort Port { get; private set; }
 
         private Socket? _listener;
-        private Dictionary<Guid, PipeSocket> _pipeSockets;
 
         public PipeServer Start()
         {
@@ -52,14 +53,46 @@ namespace HttpPiping.Core
 
         public void Stop()
         {
-            _listener.Close();
+            StopPipeSockets();
+
+            try { _listener?.Close(); }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "On stop, closing listener error");
+            }
+            finally
+            {
+                _listener = null;
+            }
+
+            _logger?.LogInformation("Listening on {Address}:{Port} stoped", Address, Port);
+
+        }
+
+        private void StopPipeSockets()
+        {
+            PipeSocket[] pipeSockets;
+            lock (_pipeSocketsLock)
+                pipeSockets = _pipeSockets.Values.ToArray();
+
+            foreach (var pipeSocket in pipeSockets)
+            {
+                try { pipeSocket.Dispose(); }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "On StopPipeSockets, dispose pipeSocket {PipeSocketKey} error", pipeSocket.Key);
+                }
+            }
+
+            lock (_pipeSocketsLock)
+                _pipeSockets.Clear();
         }
 
         public void OnAccept(IAsyncResult ar)
         {
             try
             {
-                Socket newSocket = _listener.EndAccept(ar);
+                var newSocket = _listener?.EndAccept(ar);
                 if (newSocket != null)
                 {
                     var pipeSocket = new PipeSocket(_logger, _flowManager, newSocket, RemovePipeSocket);
@@ -67,27 +100,32 @@ namespace HttpPiping.Core
                     pipeSocket.StartHandshake();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "OnAccept new socket error");
+            }
 
             try
             {
                 //Restart Listening
-                _listener.BeginAccept(new AsyncCallback(this.OnAccept), _listener);
+                _listener?.BeginAccept(new AsyncCallback(this.OnAccept), _listener);
             }
-            catch
+            catch (Exception ex)
             {
-                //Dispose();
+                _logger?.LogError(ex, "BeginAccept listener");
             }
         }
 
         private void Add(PipeSocket pipeSocket)
         {
-            _pipeSockets.Add(pipeSocket.Key, pipeSocket);
+            lock (_pipeSocketsLock)
+                _pipeSockets.Add(pipeSocket.Key, pipeSocket);
         }
 
         private void RemovePipeSocket(PipeSocket pipeSocket)
         {
-            _pipeSockets.Remove(pipeSocket.Key);
+            lock (_pipeSocketsLock)
+                _pipeSockets.Remove(pipeSocket.Key);
         }
     }
 }

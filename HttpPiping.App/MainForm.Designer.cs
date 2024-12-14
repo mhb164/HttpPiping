@@ -51,6 +51,8 @@
             // StartButton
             // 
             StartButton.FlatStyle = FlatStyle.Flat;
+            StartButton.Font = new Font("Consolas", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            StartButton.ForeColor = Color.Green;
             StartButton.Location = new Point(137, 13);
             StartButton.Name = "StartButton";
             StartButton.Size = new Size(75, 28);
@@ -62,6 +64,8 @@
             // StopButton
             // 
             StopButton.FlatStyle = FlatStyle.Flat;
+            StopButton.Font = new Font("Consolas", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            StopButton.ForeColor = Color.Red;
             StopButton.Location = new Point(218, 13);
             StopButton.Name = "StopButton";
             StopButton.Size = new Size(75, 28);
@@ -121,7 +125,7 @@
             // MainForm
             // 
             AutoScaleMode = AutoScaleMode.None;
-            BackColor = Color.DimGray;
+            BackColor = Color.DarkGray;
             ClientSize = new Size(906, 638);
             Controls.Add(TraceEnabledCheckBox);
             Controls.Add(LogBox);

@@ -37,7 +37,7 @@ namespace HttpPiping.Core
         {
             try
             {
-                DestinationSocket.EndConnect(ar);
+                DestinationSocket?.EndConnect(ar);
                 ToSource?.OnDestinationConnected();
             }
             catch
@@ -76,7 +76,8 @@ namespace HttpPiping.Core
         {
             try
             {
-                if (DestinationSocket.EndSend(ar) == -1)
+                int Ret = DestinationSocket?.EndSend(ar) ?? 0;
+                if (Ret <= 0)
                 {
                     Dispose();
                     return;
@@ -98,7 +99,7 @@ namespace HttpPiping.Core
         {
             try
             {
-                int Ret = DestinationSocket.EndSend(ar);
+                int Ret = DestinationSocket?.EndSend(ar) ?? 0;
                 if (Ret > 0)
                 {
                     ToSource?.OnDestinationDataSent();
@@ -118,7 +119,7 @@ namespace HttpPiping.Core
         {
             try
             {
-                int Ret = DestinationSocket.EndReceive(ar);
+                int Ret = DestinationSocket?.EndReceive(ar) ?? 0;
                 if (Ret <= 0)
                 {
                     Dispose();
